@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+{% block content %}
+  {% if activemessage is not none %} 
+    {% for n in data %}
+      {% if n.id == activemessage %}
+        <div class="card">
+          <h5 class="card-header">From: {{n.email}}</h5>
+          <div class="card-body">
+            <h5 class="card-title">Subject: {{n.subject}}</h5>
+            <h6 class="card-subtitle text-muted">{{n.date}}</h6>
+            <p class="card-text">{{email_body|safe}}</p>
+            <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+              
+              <a href="{{ '/inbox/%s/reply'%n.id }}" class="btn btn-outline-primary fas fa-reply">Reply</a>
+
+              <a href="{{ '/inbox/%s/forward'%n.id }}" class="btn btn-outline-primary fas fa-share">Forward</a>
+
+              <a href="{{ '/inbox/%s/delete'%n.id }}" class="btn btn-outline-primary fas fa-trash-alt">Delete</a>
+            </div>
+          </div>
+        </div>        
+      {% endif%}
+    {% endfor %}
+  {%endif%}
+  {% if reply is not none %}
+    
+          <form action="{{ url_for('send') }}" method="POST" enctype="multipart/form-data">
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="basic-addon1">To: </span>
+              <input type="text" class="form-control form-control-sm" name="To" aria-label="To" value = '{{email}}'>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="basic-addon2">Cc:</span>
+              <input type="text" class="form-control form-control-sm" name="CC" aria-label="CC">
+            </div>     
+            <textarea name="emailArea">{{email_body}}</textarea>
+            <input type="file" name="file" id="file" class="inputfile">
+            <label for="file">(Attachments)</label>
+            <button type="submit" class="btn btn-outline-primary far fa-paper-plane">Send Reply</button>
+            <a type="button" href="{{ '/inbox/%s'%reply }}" class="btn btn-outline-primary fas fa-comment-slash">Discard Draft</a>
+          </form>
+            
+               
+        <script src="{{ url_for('static', filename='js/tinymce/tinymce.min.js') }}" ></script>
+        <script>
+        tinymce.init({
+        selector: 'textarea',
+          plugins: "link image code",
+    toolbar: 'undo redo | styleselect | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | code',
+          menubar: false,
+          browser_spellcheck: true,
+          height : "75vh"
+      });
+        </script>
+  {%endif%}
+
+{% endblock %}
+
+{% block emaillist %}
+<div class="row">
+<div class="list-group list-group-flush border-bottom scrollarea infinite-scroll scrollside">    
+      {% for n in data %}
+    <a href="{{ '/inbox/%s'%n.id }}" class="list-group-item list-group-item-action {% if activemessage is not none %} {% if activemessage == n.id%} active {%endif%} {%endif%} py-3 lh-tight" aria-current="true">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <strong class="mb-1">{{ n.name }} - {{n.email}}</strong>
+          <small>{{n.date}}</small>
+        </div>
+        <div class="col-10 mb-1 small">{{n.subject}}</div>
+      </a>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block config%}
+<div class="modal" id="config" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Email Server Configuration</h4>
+        </div>
+        <div class="modal-body">
+          <form action="/config" method="POST">
+        <div class="form-floating mb-3">
+            <input class="form-control" name="host" type="text" placeholder="Host" {% if config.host|length %} value = '{{config.host}}'{% endif %}/>
+            <label for="host">Host</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input class="form-control" name="port" type="text" placeholder="Port" {% if config.port|length %} value = '{{config.port}}'{% endif %}/>
+            <label for="port">Port</label>
+        </div>
+        <div class="form-floating mb-3">
+            <select class="form-select" name="protocol" aria-label="Protocol">
+                <option value="SSL">SSL</option>
+                <option value="TLS">TLS</option>
+                <option value="STARTTLS">STARTTLS</option>
+            </select>
+            <label for="protocol">Protocol</label>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary btn-lg" id="submitButton" data-dismiss="modal" type="submit">Submit</button>
+        </div>
+    </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+   <script>
+    function config() {
+      $('#config').modal('show');
+    }
+  </script>
+{% endblock%}
