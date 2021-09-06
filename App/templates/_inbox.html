@@ -8,7 +8,7 @@
             <h5 class="card-title">Subject: {{n.subject}}</h5>
             <h6 class="card-subtitle text-muted">{{n.date}}</h6>
             {% if n.attachments %}<h7>Attachment : <a href="{{ '/attachments/%s'%n.attachments }}">{{n.attachments}}</a></h7>{% endif %}
-            <p class="card-text">{{n.body}}</p>
+            <p class="card-text">{{n.body|safe}}</p>
             <div class="btn-group" role="group">
               
               <a href="{{ '/inbox/%s/reply'%n.uid }}" class="btn btn-outline-primary fas fa-reply">Reply</a>
