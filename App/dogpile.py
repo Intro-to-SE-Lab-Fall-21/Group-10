@@ -1,4 +1,7 @@
 from flask import Flask, request, render_template, redirect, session, jsonify, json, send_from_directory
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+import atexit
 import datetime
 import email
 import imaplib
@@ -6,6 +9,7 @@ import mailbox
 import json
 import os
 import base64
+import html2text
 
 app = Flask(__name__,static_url_path='/static')
 
@@ -13,12 +17,15 @@ imap_host = ''
 imap_user = ''
 imap_pass = ''
 
+global_mail_list = []
+
 @app.template_filter()
 def datetimefilter(value, format='%Y/%m/%d %H:%M'):
     return value.strftime(format)
 app.jinja_env.filters['datetimefilter'] = datetimefilter
 
 def getemaillist():
+    global global_mail_list
     mail_list = [] 
     mail = imaplib.IMAP4_SSL(imap_host)
     mail.login(imap_user, imap_pass)
@@ -47,7 +54,7 @@ def getemaillist():
         mail_item = {"uid": (latest_email_uid).decode("ascii"), "email_from_name":realname,"email_from_addr":addr, "email_to": email_to, "subject": subject, "date":local_message_date}
         mail_list.append(mail_item)
     else:
-        return (mail_list)
+        global_mail_list = mail_list
 def getMessage(m = None):
     if m is not None:
         mail_list = []
@@ -80,13 +87,24 @@ def getMessage(m = None):
                 fp.write(part.get_payload(decode=True))
                 fp.close()
         if email_message.is_multipart():
+            charset = part.get_content_charset()
+            if charset is None:
+                charset = 'utf-8'
             for payload in email_message.get_payload():
                 for part in email_message.walk():
-                    if (part.get_content_type() == 'text/plain') and (part.get('Content-Disposition') is None):
-                        body = part.get_payload(decode=True)
+                    if part.get_content_type() == 'text/plain':
+                        body = str(part.get_payload(decode=True), str(charset), "ignore").encode('utf8', 'replace')
+                    if part.get_content_type() == 'text/html':
+                        body = str(part.get_payload(decode=True), str(charset), "ignore").encode('utf8', 'replace')
                 break
         else:
-            body = email_message.get_payload(decode=True)
+            text = f"{email_message.get_payload(decode=True)}"
+            html = text.replace("b'", "")
+            h = html2text.HTML2Text()
+            h.ignore_links = false
+            output = (h.handle(f'''{html}''').replace("\\r\\n", ""))
+            output = output.replace("'", "")
+            body = output
         realname, addr = email.utils.parseaddr(email_message['from'])
         email_to = str(email.header.make_header(email.header.decode_header(email_message['To'])))
         subject = str(email.header.make_header(email.header.decode_header(email_message['Subject'])))
@@ -168,7 +186,7 @@ def config():
 def home(idname = None):
     if userAuth() == False:
         return redirect("/")
-    return render_template('_inbox.html', reply = None, activemessage = idname, data=getemaillist(), email_body = getMessage(idname), config = getConfig())
+    return render_template('_inbox.html', reply = None, activemessage = idname, data=global_mail_list, email_body = getMessage(idname), config = getConfig())
 
 @app.route("/inbox/<idname>/reply")
 @app.route("/inbox/<idname>/forward")
@@ -176,7 +194,7 @@ def home(idname = None):
 def homereply(idname = None):
     if userAuth() == False:
         return redirect("/")
-    return render_template('_inbox.html', reply = idname, activemessage = None, data=getemaillist(), email_body = getMessage(idname), config = getConfig())
+    return render_template('_inbox.html', reply = idname, activemessage = None, data=global_mail_list, email_body = getMessage(idname), config = getConfig())
 
 @app.route("/send", methods=['POST'])
 def send():
@@ -188,3 +206,17 @@ def send():
     message += formFrom + "<br>"
     message += formBody
     return (message)
+
+# create schedule for printing time
+scheduler = BackgroundScheduler()
+scheduler.start()
+scheduler.add_job(
+    func=getemaillist,
+    trigger=IntervalTrigger(seconds=30),
+    id='get mail every 60 seconds',
+    name='get mail every 60 seconds',
+    replace_existing=True)
+# Shut down the scheduler when exiting the app
+atexit.register(lambda: scheduler.shutdown())
+
+getemaillist()
