@@ -16,7 +16,6 @@ app = Flask(__name__,static_url_path='/static')
 imap_host = ''
 imap_user = ''
 imap_pass = ''
-
 global_mail_list = []
 
 @app.template_filter()
@@ -207,16 +206,16 @@ def send():
     message += formBody
     return (message)
 
-# create schedule for printing time
 scheduler = BackgroundScheduler()
 scheduler.start()
 scheduler.add_job(
     func=getemaillist,
     trigger=IntervalTrigger(seconds=30),
-    id='get mail every 60 seconds',
-    name='get mail every 60 seconds',
+    id='get mail every 30 seconds',
+    name='get mail every 30 seconds',
     replace_existing=True)
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
 getemaillist()
+
