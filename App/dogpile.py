@@ -9,9 +9,9 @@ import base64
 
 app = Flask(__name__,static_url_path='/static')
 
-imap_host = 'imap.gmail.com'
-imap_user = 'group10.dogpile.client@gmail.com'
-imap_pass = 'rwVE4a>[KSw9'
+imap_host = ''
+imap_user = ''
+imap_pass = ''
 
 @app.template_filter()
 def datetimefilter(value, format='%Y/%m/%d %H:%M'):
