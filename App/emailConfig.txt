@@ -1,3 +1,0 @@
-smtp.gmail.com
-465
-SSL

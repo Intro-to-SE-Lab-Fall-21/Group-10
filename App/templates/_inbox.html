@@ -1,45 +1,44 @@
 {% extends "layout.html" %}
 {% block content %}
-  {% if activemessage is not none %} 
-    {% for n in data %}
-      {% if n.id == activemessage %}
+  {% if activemessage %} 
+    {% for n in email_body %}
         <div class="card">
-          <h5 class="card-header">From: {{n.email}}</h5>
+          <h5 class="card-header">From: {{n.email_from_name}}</h5>
           <div class="card-body">
             <h5 class="card-title">Subject: {{n.subject}}</h5>
             <h6 class="card-subtitle text-muted">{{n.date}}</h6>
-            <p class="card-text">{{email_body|safe}}</p>
-            <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+            {% if n.attachments %}<h7>Attachment : <a href="{{ '/attachments/%s'%n.attachments }}">{{n.attachments}}</a></h7>{% endif %}
+            <p class="card-text">{{n.body}}</p>
+            <div class="btn-group" role="group">
               
-              <a href="{{ '/inbox/%s/reply'%n.id }}" class="btn btn-outline-primary fas fa-reply">Reply</a>
+              <a href="{{ '/inbox/%s/reply'%n.uid }}" class="btn btn-outline-primary fas fa-reply">Reply</a>
 
-              <a href="{{ '/inbox/%s/forward'%n.id }}" class="btn btn-outline-primary fas fa-share">Forward</a>
+              <a href="{{ '/inbox/%s/forward'%n.uid }}" class="btn btn-outline-primary fas fa-share">Forward</a>
 
-              <a href="{{ '/inbox/%s/delete'%n.id }}" class="btn btn-outline-primary fas fa-trash-alt">Delete</a>
+              <a href="{{ '/inbox/%s/delete'%n.uid }}" class="btn btn-outline-primary fas fa-trash-alt">Delete</a>
             </div>
           </div>
         </div>        
-      {% endif%}
     {% endfor %}
   {%endif%}
   {% if reply is not none %}
-    
+    {% for n in email_body %}
           <form action="{{ url_for('send') }}" method="POST" enctype="multipart/form-data">
             <div class="input-group mb-3">
               <span class="input-group-text" id="basic-addon1">To: </span>
-              <input type="text" class="form-control form-control-sm" name="To" aria-label="To" value = '{{email}}'>
+              <input type="text" class="form-control form-control-sm" name="To" aria-label="To" value = '{{n.email_from_addr}}'>
             </div>
             <div class="input-group mb-3">
               <span class="input-group-text" id="basic-addon2">Cc:</span>
               <input type="text" class="form-control form-control-sm" name="CC" aria-label="CC">
             </div>     
-            <textarea name="emailArea">{{email_body}}</textarea>
+            <textarea name="emailArea">{{n.body}}</textarea>
             <input type="file" name="file" id="file" class="inputfile">
             <label for="file">(Attachments)</label>
             <button type="submit" class="btn btn-outline-primary far fa-paper-plane">Send Reply</button>
             <a type="button" href="{{ '/inbox/%s'%reply }}" class="btn btn-outline-primary fas fa-comment-slash">Discard Draft</a>
           </form>
-            
+    {% endfor %}    
                
         <script src="{{ url_for('static', filename='js/tinymce/tinymce.min.js') }}" ></script>
         <script>
@@ -60,9 +59,9 @@
 <div class="row">
 <div class="list-group list-group-flush border-bottom scrollarea infinite-scroll scrollside">    
       {% for n in data %}
-    <a href="{{ '/inbox/%s'%n.id }}" class="list-group-item list-group-item-action {% if activemessage is not none %} {% if activemessage == n.id%} active {%endif%} {%endif%} py-3 lh-tight" aria-current="true">
+    <a href="{{ '/inbox/%s'%n.uid }}" class="list-group-item list-group-item-action {% if activemessage is not none %} {% if activemessage == n.uid%} active {%endif%} {%endif%} py-3 lh-tight" aria-current="true">
         <div class="d-flex w-100 align-items-center justify-content-between">
-          <strong class="mb-1">{{ n.name }} - {{n.email}}</strong>
+          <strong class="mb-1">{{ n.email_from_name }} - {{n.email_from_addr}}</strong>
           <small>{{n.date}}</small>
         </div>
         <div class="col-10 mb-1 small">{{n.subject}}</div>
