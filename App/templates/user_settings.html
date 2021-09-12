@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block body %}
+{% from "includes/_formhelpers.html" import render_field %}
+<div class="row py-3">
+
+<div class="col-md-6">
+  <div class="card">
+    <div class="card-header">
+        User Settings
+    </div>
+    <div class="card-body">
+      <form action="" method="POST" id="userPassword">
+        {{ userForm.csrf_token }}
+
+        {% if userForm %}
+        <div class="form-group">
+            <label>{{ userForm.password.label }}</label>
+            {{ userForm.password(size=32, class="form-control") }}
+            {% for error in userForm.password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+    
+        <div class="form-group">
+            <label>{{ userForm.confirm.label }}</label>
+            {{ userForm.confirm(size=32, class="form-control") }}
+            {% for error in userForm.confirm.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        {% endif %}
+      </form>
+    </div>
+    <div class="card-footer">
+      <button type="submit" form="userPassword" formmethod="POST"
+        formaction="{{ url_for('settings', user_id=userForm.id.data) }}" class="btn btn-primary">Update Account</button>
+    </div>
+  </div>
+</div>
+<div class="col-md-6">
+
+  <div class="card">
+    <div class="card-header">
+        Inbox Mail Settings
+    </div>
+    <div class="card-body">
+      <form action="" method="POST" id="emailConfig">
+        {{ configForm.csrf_token }}
+
+        {% if configForm %}
+        <div class="form-group">
+            <label>{{ configForm.incoming_host.label }}</label>
+            {{ configForm.incoming_host(size=30, class="form-control") }}
+            {% for error in configForm.incoming_host.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label>{{ configForm.incoming_port.label }}</label>
+            {{ configForm.incoming_port(size=5, class="form-control") }}
+            {% for error in configForm.incoming_port.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label>{{ configForm.outgoing_host.label }}</label>
+            {{ configForm.outgoing_host(size=30, class="form-control") }}
+            {% for error in configForm.outgoing_host.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label>{{ configForm.outgoing_port.label }}</label>
+            {{ configForm.outgoing_port(size=5, class="form-control") }}
+            {% for error in configForm.outgoing_port.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label>{{ configForm.emailaccount.label }}</label>
+            {{ configForm.emailaccount(size=30, class="form-control") }}
+            {% for error in configForm.emailaccount.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label>{{ configForm.emailpassword.label }}</label>
+            {{ configForm.emailpassword(size=30, class="form-control") }}
+            {% for error in configForm.emailpassword.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <label>{{ configForm.emailconfirm.label }}</label>
+            {{ configForm.emailconfirm(size=30, class="form-control") }}
+            {% for error in configForm.emailconfirm.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        {% endif %}
+      </form>
+    </div>
+    <div class="card-footer">
+      <button type="submit" form="emailConfig" formmethod="POST"
+        formaction="{{ url_for('emailConfig', user_id=configForm.id.data) }}" class="btn btn-primary">Save Email Server Settings</button>
+    </div>
+</div>
+  </div>
+
+{% endblock %}

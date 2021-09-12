@@ -1,0 +1,55 @@
+<div class="container-fluid p-0">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTop"
+            aria-controls="navbarTop" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTop">
+
+            <a class="navbar-brand" href="/">dogPile Email Client</a>
+
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                {% if current_user.is_anonymous %}
+                <li class="nav-item">
+                    <a class="nav-link fas fa-home" href="/"> Home</a>
+                </li>
+                {% else %}
+                {% if current_user.is_admin() or current_user.is_user() %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/inbox">Inbox</a>
+                </li>
+                {% endif %}
+                {% endif %}
+            </ul>
+
+            <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+                {% if current_user.is_anonymous%}
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Login</a>
+                </li>
+                {% else %}
+                {% if current_user.is_admin() %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/user_manage">User Management</a>
+                </li>
+                {% endif %}
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/settings">Settings</a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+
+                {% endif %}
+            </ul>
+        </div>
+
+    </nav>
+</div>

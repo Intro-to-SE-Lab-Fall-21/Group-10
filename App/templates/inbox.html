@@ -1,0 +1,177 @@
+{% extends "inbox_layout.html" %}
+{% block content %}
+  {% if activemessage %} 
+    {% for n in email_body %}
+        <div class="card">
+          <h5 class="card-header">From: {{n.email_from_name}}</h5>
+          <div class="card-body">
+            <h5 class="card-title">Subject: {{n.subject}}</h5>
+            <h6 class="card-subtitle text-muted">{{n.date}}</h6>
+            {% if n.attachments %}<h7>Attachment : <a href="{{ '/attachments/%s'%n.attachments }}">{{n.attachments}}</a></h7>{% endif %}
+            <p class="card-text">{{n.body|safe}}</p>
+            <div class="btn-group" role="group">
+              
+              <a href="{{ '/inbox/%s/reply'%n.uid }}" class="btn btn-outline-primary fas fa-reply">Reply</a>
+
+              <a href="{{ '/inbox/%s/forward'%n.uid }}" class="btn btn-outline-primary fas fa-share">Forward</a>
+
+              <a href="{{ '/inbox/%s/delete'%n.uid }}" class="btn btn-outline-primary fas fa-trash-alt">Delete</a>
+            </div>
+          </div>
+        </div>        
+    {% endfor %}
+  {%endif%}
+  {% if reply is not none %}
+    {% for n in email_body %}
+          <form action="{{ url_for('sendmail') }}" method="POST" enctype="multipart/form-data">
+            <div class="input-group mb-3">
+              <span class="input-group-text">To: </span>
+              <input type="text" class="form-control form-control" name="To" aria-label="To" value = '{{n.email_from_addr}}'>
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Cc:</span>
+              <input type="text" class="form-control form-control" name="CC" aria-label="CC">
+            </div> 
+            <div class="input-group mb-3">
+              <span class="input-group-text">Subject:</span>
+              <input type="text" class="form-control form-control" name="Subject" aria-label="Subject" value='{{n.subject}}'>
+            </div>     
+            <textarea name="emailArea">{{n.body}}</textarea>
+            <input type="file" name="file" id="file" class="inputfile" multiple>
+            <label for="file"><i class="far fa-file"></i>Attach File</label>
+            <button type="submit" class="btn btn-outline-primary fas fa-paper-plane"> Send Reply</button>
+            <a type="button" href="{{ url_for('inbox') }}" class="btn btn-outline-primary fas fa-comment-slash"> Discard</a>
+          </form>
+    {% endfor %}    
+               
+        <script src="{{ url_for('static', filename='js/tinymce/tinymce.min.js') }}" ></script>
+        <script>
+        tinymce.init({
+        selector: 'textarea',
+          plugins: "link image code",
+    toolbar: 'undo redo | styleselect | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | code',
+          menubar: false,
+          browser_spellcheck: true,
+          height : "65vh"
+      });
+        </script>
+  {%endif%}
+  {% if compose %}
+  <div class="card">
+          <h5 class="card-header">New Email</h5>
+          <div class="card-body">
+          <form action="{{ url_for('sendmail') }}" method="POST" enctype="multipart/form-data">
+            <div class="input-group mb-3">
+              <span class="input-group-text">To: </span>
+              <input type="text" class="form-control form-control" name="To" aria-label="To">
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">Cc:</span>
+              <input type="text" class="form-control form-control" name="CC" aria-label="CC">
+            </div> 
+            <div class="input-group mb-3">
+              <span class="input-group-text">Subject:</span>
+              <input type="text" class="form-control form-control" name="Subject" aria-label="Subject">
+            </div>     
+            <textarea name="emailArea"></textarea>
+            <input type="file" name="file" id="file" class="inputfile" multiple>
+            <label for="file"><i class="far fa-file"></i>Attach File</label>
+            <button type="submit" class="btn btn-outline-primary fas fa-paper-plane"> Send</button>
+            <a type="button" href="{{ url_for('inbox') }}" class="btn btn-outline-primary fas fa-comment-slash"> Discard</a>
+          </form>   </div></div>              
+        <script src="{{ url_for('static', filename='js/tinymce/tinymce.min.js') }}" ></script>
+        <script>
+        tinymce.init({
+        selector: 'textarea',
+          plugins: "link image code",
+    toolbar: 'undo redo | styleselect | forecolor | bold italic | alignleft aligncenter alignright alignjustify | outdent indent | code',
+          menubar: false,
+          browser_spellcheck: true,
+          height : "50vh"
+      });
+        </script>
+  {%endif%}
+
+{% endblock %}
+
+{% block emaillist %}
+<div class="row">
+<div class="list-group list-group-flush border-bottom w-100">
+    <a href="{{ url_for('syncmail') }}" class="list-group-item list-group-item-dark">
+        <i class="fas fa-sync-alt"></i> Check Mail
+    </a>  
+    <div class="list-group-item list-group-item-primary">
+        <i class="fas fa-inbox"></i> Inbox <span class="badge badge-pill badge-primary pull-right">{{data|length}}</span>
+        <span class="py-3"><a href="{{ url_for('compose') }}" >
+        <i class="far fa-edit"></i> Compose Mail</a></span>
+    </div>    
+    <div class="list-group list-group-flush border-bottom scrollside">
+      {% if data|length < 1 %}
+        <a class="list-group-item list-group-item-action py-1 lh-tight" aria-current="true">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <strong class="mb-1">NO Mail!</strong>
+        </div>
+      </a>
+      {% endif%}
+      {% for n in data %}
+    <a href="{{ '/inbox/%s'%n.uid }}" class="list-group-item list-group-item-action {% if activemessage is not none %} {% if activemessage == n.uid%} active {%endif%} {%endif%} py-1 lh-tight" aria-current="true">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <strong class="mb-1">{{ n.email_from_name }}</strong>
+          <small>{{n.date}}</small>
+        </div>
+        <div class="col-10 mb-1 small">{{n.subject}}</div>
+      </a>
+    {% endfor %}
+  </div>
+  <div class="list-group-item list-group-item-primary">
+    <form class="form-inline" id="mail_search" action="/inbox/search" method="post">
+      <input class="form-control mr-sm-2" name="mail_search" id="mail_search" type="search" placeholder="Search" aria-label="Search">
+      <button class="btn btn-success my-2 my-sm-0" type="submit">Search</button>
+    </form>
+  </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block config%}
+<div class="modal" id="config" role="dialog">
+    <div class="modal-dialog modal-lg">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Email Server Configuration</h4>
+        </div>
+        <div class="modal-body">
+          <form action="/config" method="POST">
+        <div class="form-floating mb-3">
+            <input class="form-control" name="host" type="text" placeholder="Host" {% if config.host|length %} value = '{{config.host}}'{% endif %}/>
+            <label for="host">Host</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input class="form-control" name="port" type="text" placeholder="Port" {% if config.port|length %} value = '{{config.port}}'{% endif %}/>
+            <label for="port">Port</label>
+        </div>
+        <div class="form-floating mb-3">
+            <select class="form-select" name="protocol" aria-label="Protocol">
+                <option value="SSL">SSL</option>
+                <option value="TLS">TLS</option>
+                <option value="STARTTLS">STARTTLS</option>
+            </select>
+            <label for="protocol">Protocol</label>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary btn-lg" id="submitButton" data-dismiss="modal" type="submit">Submit</button>
+        </div>
+    </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+   <script>
+    function config() {
+      $('#config').modal('show');
+    }
+  </script>
+{% endblock%}

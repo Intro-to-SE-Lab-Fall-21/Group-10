@@ -1,0 +1,31 @@
+
+
+{% extends 'base.html' %}
+
+{% block body %}
+
+<section class="py-5">
+  <div class="container px-4 px-lg-5 my-5">
+      <div class="row gx-4 gx-lg-5 align-items-center">
+          <div class="col-md-6"><img class="card-img-top mb-5 mb-md-0" src="{{ url_for('static', filename='images/dogFront.jpg') }}" style="max-width: 425px;"></div>
+          <div class="col-md-6">
+              
+              <h1 class="display-4">- dogPile -</h1>
+              <h2 class="display-5">Light Web Email Client</h2>
+              
+              
+              <div class="">
+                  <p class="lead py-3">With dogPile, you can:</p>
+                  <ul>
+                      <li>Connect to your preferred mail server</li>
+                      <li>Compose, reply and forward messages</li>
+                      <li>...enter more...</li>
+                  </ul>
+                  
+              </div>
+          </div>
+      </div>
+  </div>
+</section>
+
+{% endblock %}

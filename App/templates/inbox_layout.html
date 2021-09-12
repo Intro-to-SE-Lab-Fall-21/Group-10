@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}"  rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/all.css') }}"  rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}"  rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}" ></script>
+  <title>dogPile Email Client - Inbox</title>
+</head>
+
+<body>
+  {% include 'includes/_navbar.html' %}
+
+  <div class="container-fluid">
+    {% include 'includes/_messages.html' %}
+
+    <div class="row">
+   
+    <main class="col-13 col-md-3">
+   {% block emaillist %}{% endblock %}
+   </main>
+   <main class="col-13 col-md-9 p-3">
+   {% block content %}{% endblock %}
+   </main>
+  </div>
+  </div>
+
+  <!-- Bootstrap -->
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="{{ url_for('static', filename='js/popper.min.js') }}" ></script>    
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}" ></script>  
+</body>
+
+</html>
