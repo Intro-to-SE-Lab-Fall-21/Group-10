@@ -23,17 +23,23 @@ The objective is to design a web based email client that will have a number of d
 - Search emails and forward them
 - Send attachments
 
-## Languages
+## Languages / Tools
 - HTML
 - Javascript
 - Python
 - Flask
+- Sqlite
 
 ## Requirements
 - Python 3.7.x
 - Pip
+- Pipreqs
 - requirements.txt (packages)
 
 # Dev Install
 1. set FLASK_APP=dogpile.py
 2. python -m flask run
+
+# Default Credentials
+- User: dogpile_admin
+- Pass: dogpile_pass
