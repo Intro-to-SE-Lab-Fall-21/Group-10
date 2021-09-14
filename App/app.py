@@ -34,7 +34,7 @@ global_mail_list = []
 global_search_list = []
 
 app.config['SECRET_KEY']='d0gp1l3k3y-not-secret-really'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogpile.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogpile_db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
