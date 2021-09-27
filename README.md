@@ -37,7 +37,7 @@ The objective is to design a web based email client that will have a number of d
 - requirements.txt (packages)
 
 # Dev Install
-1. set FLASK_APP=dogpile.py
+1. set FLASK_APP=app.py
 2. python -m flask run
 
 # Default Credentials
