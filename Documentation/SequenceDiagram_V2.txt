@@ -1,0 +1,71 @@
+title dogPile email client
+
+actor User
+participant WebApp
+database user_DB
+
+participant "Inbox\non external srver" as Inbox
+
+note right of User: Registration Process
+User->WebApp: +register()
+WebApp->user_DB: +userSettings()
+user_DB->WebApp: confirm()
+
+User->WebApp: +emailConfig()
+WebApp->user_DB: +mailSettings()
+user_DB->WebApp: confirm()
+
+note right of User: Login Process
+User->WebApp: +login()
+WebApp->user_DB: +isUser()
+user_DB->WebApp: -userAccess
+
+note right of User: Inbox Operations
+linear
+User->WebApp: +syncMail()
+WebApp->Inbox: +syncMail()
+linear off
+Inbox->WebApp: mailList
+
+linear 
+User->WebApp: +searchMail()
+WebApp->Inbox: +searchMail()
+linear off
+Inbox->WebApp: mailList
+
+linear
+User->WebApp: +getMessage()
+WebApp->Inbox: +getMessage()
+linear off
+Inbox->WebApp: Message
+
+linear
+User->WebApp: +getAttachment()
+WebApp->Inbox: +getAttachment()
+linear off
+Inbox->WebApp: -attachment
+
+User->WebApp: +compose()
+WebApp->User: return
+User->Inbox: +sendmail()
+Inbox->WebApp: return
+
+note right of User: Message Operations
+linear 
+User->WebApp: +getMessage()
+WebApp->Inbox: +getMessage()
+linear off
+Inbox->WebApp: mailList
+
+User->WebApp: +reply()
+WebApp->Inbox: +sendMail()
+Inbox->WebApp: mailList
+
+User->WebApp: +forward()
+WebApp->Inbox: +sendMail()
+Inbox->WebApp: mailList
+
+User->WebApp: +delete()
+WebApp->Inbox: +delete()
+Inbox->WebApp: mailList
+
