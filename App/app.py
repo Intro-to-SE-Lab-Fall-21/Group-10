@@ -2,7 +2,7 @@ from flask import Flask, render_template, flash, redirect, url_for, request,send
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-from flask_sqlalchemy import SQLAlchemy as _BaseSQLAlchemy
+from flask_sqlalchemy import SQLAlchemy # as _BaseSQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.urls import url_parse
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required
@@ -35,13 +35,13 @@ global_search_list = []
 
 app.config['SECRET_KEY']='d0gp1l3k3y-not-secret-really'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogpile_db.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
-class SQLAlchemy(_BaseSQLAlchemy):
-     def apply_pool_defaults(self, app, options):
-        super(SQLAlchemy, self).apply_pool_defaults(app, options)
-        options["pool_pre_ping"] = True
+#class SQLAlchemy(_BaseSQLAlchemy):
+#     def apply_pool_defaults(self, app, options):
+#        super(SQLAlchemy, self).apply_pool_defaults(app, options)
+#        options["pool_pre_ping"] = True
 
 db = SQLAlchemy(app)
 
