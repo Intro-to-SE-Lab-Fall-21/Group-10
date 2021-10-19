@@ -14,6 +14,9 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
+from email.header import Header
+from email.header import decode_header
+from email.utils import formataddr
 #import secrets
 import keyring
 import email
@@ -197,7 +200,7 @@ def register():
     if form.validate_on_submit():
         name = form.name.data
         username = form.username.data
-        user = User(id = None, name=name, username=username, email=form.email.data,access=ACCESS['guest'])
+        user = User(id = None, name=name, username=username, email=form.email.data,access=ACCESS['user'])
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -251,6 +254,16 @@ def settings():
         return redirect(url_for('settings'))
 
     return render_template('user_settings.html', userForm=userForm, configForm=configForm)
+def verifySettings():
+    user = User.query.get_or_404(current_user.id)
+    exist_mail = MailConfig.query.filter_by(uid=current_user.id).first()
+    userForm = UserPasswordForm()
+    if(exist_mail is None):
+        return False
+    if(exist_mail.incomingHost is None or exist_mail.outgoingHost is None or exist_mail.incomingPort is None or exist_mail.outgoingPort is None or exist_mail.account is None or exist_mail.get_password(exist_mail.account) is None):
+        return False
+    else:
+        return True
 
 #email configuration
 @app.route('/emailConfig', methods=['POST'])
@@ -290,6 +303,7 @@ def emailConfig():
 @app.route("/send",methods=["POST"])
 @login_required
 def sendmail():
+    user = User.query.get_or_404(current_user.id)
     exist_mail = MailConfig.query.filter_by(uid=current_user.id).first()
     subject = "Re: "
     body = request.form["emailArea"]
@@ -298,7 +312,7 @@ def sendmail():
     password = exist_mail.get_password(exist_mail.account)
 
     message = MIMEMultipart("alternative")
-    message["From"] = exist_mail.account
+    message["From"] = formataddr((str(Header(user.name, 'utf-8')), exist_mail.account))
     message["To"] = request.form["To"]
     message["Subject"] = request.form["Subject"]
     file = request.files['file']
@@ -376,12 +390,15 @@ def getMessage(m = None):
             if part.get('Content-Disposition') is None:
                 continue
             filename = part.get_filename()
+            #if decode_header(filename)[0][1] is not None:
             att_path = os.path.join('attachments', filename)
-
             if not os.path.isfile(att_path):
-                fp = open(att_path, 'wb')
-                fp.write(part.get_payload(decode=True))
-                fp.close()
+                try:
+                    fp = open(att_path, 'wb')
+                    fp.write(part.get_payload(decode=True))
+                    fp.close()
+                except FileNotFoundError:
+                    continue
         if email_message.is_multipart():
             charset = part.get_content_charset()
             if charset is None:
@@ -439,8 +456,12 @@ def compose():
 @app.route("/inbox/sync")
 @login_required
 def syncmail():
-    getemaillist(None)
-    return render_template('inbox.html', reply = None, activemessage = None, data=global_mail_list, email_body = None)
+    if(verifySettings()):
+        getemaillist(None)
+        return render_template('inbox.html', reply = None, activemessage = None, data=global_mail_list, email_body = None)
+    else:
+        flash('You need to add your email account settings.', 'warning')
+        return redirect(url_for('settings'))
 
 #inbox search starter (needs improved)
 @app.route("/inbox/search", methods=['POST'])
@@ -460,12 +481,13 @@ def delete(id = None):
         mail.login(exist_mail.account, exist_mail.get_password(exist_mail.account))
         mail.list()
         mail.select('inbox')
-        result, data = mail.uid('search', None, "ALL") # (ALL/UNSEEN)
-        mID = int(id)
-        email_uid = data[0].split()[mID-1]
-        result, email_data = mail.uid('fetch', email_uid, '(RFC822)')
-        mail.store(email_uid, "+FLAGS", "\\Deleted")
+        result, email_data = mail.uid('fetch', id, '(RFC822)')
+        mail.uid('STORE',id,'+X-GM-LABELS', '\\Trash')
+        mail.expunge()
+        mail.close()
+        mail.logout()
         getemaillist(None)
+        flash(email_data,'success')
         return render_template('inbox.html', reply = None, activemessage = None, data=global_mail_list, email_body = None)
 
 #inbox download attachment
