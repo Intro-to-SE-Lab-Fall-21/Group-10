@@ -344,7 +344,7 @@ def getemaillist(search = None):
     mail.list()
     mail.select('inbox')
     result, data = mail.uid('search', None, 'ALL') # (ALL/UNSEEN)
-    for x in data[0].split()[0:50]:
+    for x in data[0].split()[0:100]:
         email_uid = x
         result, email_data = mail.uid('fetch',x, '(RFC822)')
         raw_email = email_data[0][1]
