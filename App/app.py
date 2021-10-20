@@ -38,7 +38,7 @@ global_search_list = []
 
 app.config['SECRET_KEY']='d0gp1l3k3y-not-secret-really'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogpile_db.db'
-#app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 #class SQLAlchemy(_BaseSQLAlchemy):
@@ -344,7 +344,7 @@ def getemaillist(search = None):
     mail.list()
     mail.select('inbox')
     result, data = mail.uid('search', None, 'ALL') # (ALL/UNSEEN)
-    for x in data[0].split()[0:50]:
+    for x in data[0].split()[0:100]:
         email_uid = x
         result, email_data = mail.uid('fetch',x, '(RFC822)')
         raw_email = email_data[0][1]
@@ -575,5 +575,45 @@ def new_user():
 
     return render_template('new_user.html',  pageTitle='New User | dogPile Email Client', form=form)
 
+#tests
+
+def test_new_user_registration():
+    #TEST CREATING AND DELETING A USER
+    user = User(name='MSE Dummy User',username='dummyuser',email='dummyuser@gmail.com',access=ACCESS['user'])
+    user.set_password('testing')
+    db.session.add(user)
+    db.session.commit()
+    User.query.filter_by(email='dummyuser@gmail.com').delete()
+    db.session.commit()
+    assert db.session
+def test_index():
+    with app.test_client() as test_client:
+        response = test_client.get('/')
+        assert response.status_code == 200
+def test_inbox_unauthenticated():
+    with app.test_client() as test_client:
+        response = test_client.get('/inbox')
+        assert response.status_code == 302
+def test_inbox_authenticated():
+    with app.test_client() as test_client:
+        response = test_client.get('/inbox')
+        assert response.status_code == 302
+def test_user_settings_unauthenticated():
+    with app.test_client() as test_client:
+        response = test_client.get('/settings')
+        assert response.status_code == 302
+def test_user_settings_authenticated():
+    with app.test_client() as test_client:
+        response = test_client.get('/settings')
+        assert response.status_code == 302
+def test_email_config_unauthenticated_post():
+    with app.test_client() as test_client:
+        response = test_client.post('/emailConfig')
+        assert response.status_code == 302
+def test_email_config_authenticated_post():
+    with app.test_client() as test_client:
+        response = test_client.post('/emailConfig')
+        assert response.status_code == 302
+	
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

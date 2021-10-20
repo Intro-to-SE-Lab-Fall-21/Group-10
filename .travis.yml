@@ -6,4 +6,4 @@ before_install:
 install:
   - pip install -r App/requirements.txt
 script:
-  - pytest
+  - pytest App/app.py -v
