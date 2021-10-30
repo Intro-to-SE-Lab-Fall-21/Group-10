@@ -14,8 +14,12 @@
               <a href="{{ '/inbox/%s/reply'%n.uid }}" class="btn btn-outline-primary fas fa-reply">Reply</a>
 
               <a href="{{ '/inbox/%s/forward'%n.uid }}" class="btn btn-outline-primary fas fa-share">Forward</a>
-
+            {% if trash is not none %}
+              <a href="{{ '/trash/%s/restore'%n.uid }}" class="btn btn-outline-primary fas fa-trash-restore-alt">Restore</a>
+			{%endif%}
+			{% if trash is none %}
               <a href="{{ '/inbox/%s/delete'%n.uid }}" class="btn btn-outline-primary fas fa-trash-alt">Delete</a>
+			{%endif%}
             </div>
           </div>
         </div>        
@@ -101,10 +105,19 @@
         <i class="fas fa-sync-alt"></i> Check Mail
     </a>  
     <div class="list-group-item list-group-item-primary">
+    {% if trash is none %}
         <i class="fas fa-inbox"></i> Inbox <span class="badge badge-pill badge-primary pull-right">{{data|length}}</span>
         <span class="py-3"><a href="{{ url_for('compose') }}" >
-        <i class="far fa-edit"></i> Compose Mail</a></span>
+        <i class="far fa-edit"></i> Compose</a></span><span class="py-3"><a href="{{ url_for('trash') }}" >
+        <i class="far fa-trash-alt"></i> Trash</a></span>
+    {%endif%}
+	{% if trash is not none %}
+        <i class="fas fa-trash-alt"></i> Trash <span class="badge badge-pill badge-primary pull-right">{{data|length}}</span>
+        <span class="py-3"><a href="{{ url_for('inbox') }}" >
+        <i class="far fa-inbox"></i> Back to Inbox</a></span>
+    {%endif%}
     </div>    
+	
     <div class="list-group list-group-flush border-bottom scrollside">
       {% if data|length < 1 %}
         <a class="list-group-item list-group-item-action py-1 lh-tight" aria-current="true">
@@ -114,7 +127,7 @@
       </a>
       {% endif%}
       {% for n in data %}
-    <a href="{{ '/inbox/%s'%n.uid }}" class="list-group-item list-group-item-action {% if activemessage is not none %} {% if activemessage == n.uid%} active {%endif%} {%endif%} py-1 lh-tight" aria-current="true">
+    <a href="{% if trash is none%}{{ '/inbox/%s'%n.uid }}{%endif%}{% if trash is not none%}{{ '/trash/%s'%n.uid }}{%endif%}" class="list-group-item list-group-item-action {% if activemessage is not none %} {% if activemessage == n.uid%} active {%endif%} {%endif%} py-1 lh-tight" aria-current="true">
         <div class="d-flex w-100 align-items-center justify-content-between">
           <strong class="mb-1">{{ n.email_from_name }}</strong>
           <small>{{n.date}}</small>
