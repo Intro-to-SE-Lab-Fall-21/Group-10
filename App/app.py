@@ -34,6 +34,7 @@ login = LoginManager(app)
 login.login_view = 'login'
 login.login_message_category = 'danger'
 global_mail_list = []
+global_trash_list = []
 global_search_list = []
 
 app.config['SECRET_KEY']='d0gp1l3k3y-not-secret-really'
@@ -344,6 +345,7 @@ def getemaillist(search = None):
     mail.list()
     mail.select('inbox')
     result, data = mail.uid('search', None, 'ALL') # (ALL/UNSEEN)
+    #result, data = mail.search(None, 'All')
     for x in data[0].split()[0:100]:
         email_uid = x
         result, email_data = mail.uid('fetch',x, '(RFC822)')
@@ -371,7 +373,8 @@ def getemaillist(search = None):
             global_mail_list = sorted(mail_list, key = lambda i: int(i['uid']), reverse=True)
     mail.logout()
 
-def getMessage(m = None):
+@login_required
+def getMessage(m = None, t=None):
     if m is not None:
         mail_list = []
         filename = None
@@ -379,7 +382,10 @@ def getMessage(m = None):
         mail = imaplib.IMAP4_SSL(exist_mail.incomingHost)
         mail.login(exist_mail.account, exist_mail.get_password(exist_mail.account))
         mail.list()
-        mail.select('inbox')
+        if t is None:
+            mail.select('inbox')
+        else:
+            mail.select('[Gmail]/Trash')
         result, email_data = mail.uid('fetch', m, '(RFC822)')
         raw_email = email_data[0][1]
         raw_email_string = raw_email.decode('utf-8')
@@ -432,25 +438,54 @@ def getMessage(m = None):
         return (mail_list)
     else:
         return ("")
+
+@login_required
+def gettrashlist():
+    global global_trash_list
+    exist_mail = MailConfig.query.filter_by(uid=current_user.id).first()
+    mail_list = [] 
+    mail = imaplib.IMAP4_SSL(exist_mail.incomingHost,int(exist_mail.incomingPort))
+    mail.login(exist_mail.account, exist_mail.get_password(exist_mail.account))
+    mail.list()
+    mail.select('[Gmail]/Trash')
+    result, data = mail.uid('search', None, 'ALL') # (ALL/UNSEEN)
+    #result, data = mail.search(None, 'All')
+    for x in data[0].split()[0:100]:
+        email_uid = x
+        result, email_data = mail.uid('fetch',x, '(RFC822)')
+        raw_email = email_data[0][1]
+        #raw_email_string = raw_email.decode('utf-8')
+        email_message = email.message_from_bytes(raw_email)
+        date_tuple = email.utils.parsedate_tz(email_message['Date'])
+        if date_tuple:
+            local_date = datetime.datetime.fromtimestamp(email.utils.mktime_tz(date_tuple))
+            local_message_date = "%s" %(str(local_date.strftime("%a, %m/%d/%Y, %H:%M %p")))
+        realname, addr = email.utils.parseaddr(email_message['from'])
+        email_to = str(email_message['To'])
+        subject = str(email_message['Subject'])
+        mail_item = {"uid": (email_uid).decode("ascii"), "email_from_name":realname,"email_from_addr":addr, "email_to": email_to, "subject": subject, "date":local_message_date}
+        mail_list.append(mail_item)
+    global_trash_list = sorted(mail_list, key = lambda i: int(i['uid']), reverse=True)
+    mail.logout()
 #inbox 
 @app.route("/inbox")
 @app.route("/inbox/<idname>")
 @login_required
 def inbox(idname = None):
-    return render_template('inbox.html', reply = None, activemessage = idname, data=global_mail_list, email_body = getMessage(idname))
+    return render_template('inbox.html', reply = None, activemessage = idname, trash=None, data=global_mail_list, email_body = getMessage(idname))
 
 #inboc reply and forward
 @app.route("/inbox/<idname>/reply")
 @app.route("/inbox/<idname>/forward")
 @login_required
 def reply(idname = None):
-    return render_template('inbox.html', reply = idname, activemessage = None, data=global_mail_list, email_body = getMessage(idname))
+    return render_template('inbox.html', reply = idname, trash=None, activemessage = None, data=global_mail_list, email_body = getMessage(idname))
 
 #inbox new message
 @app.route("/inbox/compose")
 @login_required
 def compose():
-    return render_template('inbox.html', reply = None, activemessage = None, data=global_mail_list, compose=True)
+    return render_template('inbox.html', reply = None, trash=None, activemessage = None, data=global_mail_list, compose=True)
 
 #inbox check for mail
 @app.route("/inbox/sync")
@@ -458,10 +493,27 @@ def compose():
 def syncmail():
     if(verifySettings()):
         getemaillist(None)
-        return render_template('inbox.html', reply = None, activemessage = None, data=global_mail_list, email_body = None)
+        gettrashlist()
+        return render_template('inbox.html', reply = None, trash=None, activemessage = None, data=global_mail_list, email_body = None)
     else:
         flash('You need to add your email account settings.', 'warning')
         return redirect(url_for('settings'))
+		
+#inbox check for mail
+@app.route("/inbox/trash")
+@login_required
+def trash():
+    if(verifySettings()):
+        gettrashlist()
+        return render_template('inbox.html', reply = None, activemessage = None, data=global_trash_list, trash=True, email_body = None)
+    else:
+        flash('You need to add your email account settings.', 'warning')
+        return redirect(url_for('settings'))
+
+@app.route("/trash/<idname>")
+@login_required
+def trashmsg(idname = None):
+    return render_template('inbox.html', reply = None, activemessage = idname, trash=True, data=global_trash_list, email_body = getMessage(idname,True))
 
 #inbox search starter (needs improved)
 @app.route("/inbox/search", methods=['POST'])
@@ -469,26 +521,31 @@ def syncmail():
 def searchmail():
     search = request.form['mail_search']
     getemaillist(search)
-    return render_template('inbox.html', reply = None, activemessage = None, data=global_search_list, email_body = None)
+    return render_template('inbox.html', reply = None, trash=None, activemessage = None, data=global_search_list, email_body = None)
 
 #inbox delete message
 @app.route("/inbox/<id>/delete")
+@app.route("/trash/<res>/restore")
 @login_required
-def delete(id = None):
-    if id is not None:
+def delete(id = None,res=None):
+    if id is not None or res is not None:
         exist_mail = MailConfig.query.filter_by(uid=current_user.id).first()
         mail = imaplib.IMAP4_SSL(exist_mail.incomingHost)
         mail.login(exist_mail.account, exist_mail.get_password(exist_mail.account))
         mail.list()
-        mail.select('inbox')
-        result, email_data = mail.uid('fetch', id, '(RFC822)')
-        mail.uid('STORE',id,'+X-GM-LABELS', '\\Trash')
-        mail.expunge()
+        if res is None:
+            mail.select('inbox')
+            result, email_data = mail.uid('fetch', id, '(RFC822)')
+            mail.uid('STORE',id,'+X-GM-LABELS', '\\Trash')
+            mail.expunge()
+        else:
+            mail.select('[Gmail]/Trash')
+            mail.uid('MOVE',res, 'inbox')
         mail.close()
         mail.logout()
         getemaillist(None)
-        flash(email_data,'success')
-        return render_template('inbox.html', reply = None, activemessage = None, data=global_mail_list, email_body = None)
+        #flash(email_data,'success')
+        return render_template('inbox.html', reply = None, activemessage = None, trash=None,data=global_mail_list, email_body = None)
 
 #inbox download attachment
 @app.route('/attachments/<path:filename>')
