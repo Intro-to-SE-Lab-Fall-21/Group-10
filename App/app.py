@@ -98,12 +98,14 @@ class UserDetailForm(FlaskForm):
     id = IntegerField('Id: ')
     name = StringField('Name: ', validators=[DataRequired()])
     username = StringField('Username: ', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
     email = StringField('Email: ', validators=[DataRequired(), Email()])
     access = IntegerField('Access: ')
 
 class UserPasswordForm(FlaskForm):
     id = IntegerField('Id: ')
-    password = PasswordField('Password', validators=[DataRequired()])
+    passwordOld = PasswordField('Current Password', validators=[DataRequired()])
+    password = PasswordField('New Password', validators=[DataRequired()])
     confirm = PasswordField('Confirm', validators=[DataRequired(), EqualTo('password')])
 
 class EmailConfigForm(FlaskForm):
@@ -249,10 +251,14 @@ def settings():
         configForm = EmailConfigForm()
 
     if userForm.validate_on_submit():
-        user.set_password(userForm.password.data)
-        db.session.commit()
-        flash('Your account has been updated.', 'success')
-        return redirect(url_for('settings'))
+        if user.check_password(userForm.passwordOld.data):
+            user.set_password(userForm.password.data)
+            db.session.commit()
+            flash('Your account has been updated.', 'success')
+            return redirect(url_for('settings'))
+        else:
+            flash('Your account has not been updated. Confirm your current password is correct!', 'error')
+            return redirect(url_for('settings'))
 
     return render_template('user_settings.html', userForm=userForm, configForm=configForm)
 def verifySettings():
@@ -597,6 +603,7 @@ def update_user(user_id):
                 return redirect(url_for('user_manage'))
         user.username = form.username.data
         user.access = request.form['access_lvl']
+        user.set_password(form.password.data)
         db.session.commit()
         flash('The user has been updated.', 'success')
         return redirect(url_for('user_manage'))
