@@ -36,9 +36,13 @@ login.login_message_category = 'danger'
 global_mail_list = []
 global_trash_list = []
 global_search_list = []
+admin = 'admin'
+admPassword = 'dogpile123!'
+remoteDBaddr = '3.129.155.171'
+remoteDB = 'email-user'
 
 app.config['SECRET_KEY']='d0gp1l3k3y-not-secret-really'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogpile_db.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{admin}:{admPassword}@{remoteDBaddr}:3306/{remoteDB}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
