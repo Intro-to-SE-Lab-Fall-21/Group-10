@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, redirect, url_for, request,send_from_directory
+from flask import Flask, render_template, flash, redirect, url_for, request, send_from_directory, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
@@ -265,6 +265,7 @@ def settings():
             return redirect(url_for('settings'))
 
     return render_template('user_settings.html', userForm=userForm, configForm=configForm)
+
 def verifySettings():
     user = User.query.get_or_404(current_user.id)
     exist_mail = MailConfig.query.filter_by(uid=current_user.id).first()
