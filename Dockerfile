@@ -2,10 +2,14 @@
 
 FROM python:3.11
 
-COPY requirements.txt /
-RUN pip3 install -r /requirements.txt
+WORKDIR /code
 
-COPY . /app
-WORKDIR /app
+COPY requirements.txt .
 
-ENTRYPOINT ["./gunicorn_starter.sh"]
+RUN pip3 install -r requirements.txt
+
+COPY . .
+
+EXPOSE 50505
+
+ENTRYPOINT ["gunicorn", "app:app"]
