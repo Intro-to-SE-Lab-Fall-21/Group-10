@@ -9,4 +9,4 @@ keyring==23.2.1
 pyopenssl==20.0.0
 pymysql==1.1.0
 email-validator==2.0.0.post2
-gunicorn
+gunicorn==19.7

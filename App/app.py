@@ -1,3 +1,4 @@
+#!python3
 from flask import Flask, render_template, flash, redirect, url_for, request, send_from_directory, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, BooleanField, SubmitField
