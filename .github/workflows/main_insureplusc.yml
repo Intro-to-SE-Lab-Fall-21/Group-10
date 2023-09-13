@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'insureplusc'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_72A67098C795418EAB2FB88A9A8A17BD }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_95A644E07A0B4DADB755B68702851EDA }}
