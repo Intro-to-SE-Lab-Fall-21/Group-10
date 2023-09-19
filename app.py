@@ -1,4 +1,4 @@
-#!python3
+#!/usr/bin/python3
 from flask import Flask, render_template, flash, redirect, url_for, request, send_from_directory, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, BooleanField, SubmitField
@@ -686,4 +686,4 @@ def test_email_config_authenticated_post():
         assert response.status_code == 302
 	
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80,debug=False)
+    app.run(host='4.227.136.155', port=80,debug=False)
