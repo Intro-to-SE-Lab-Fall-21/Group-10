@@ -687,5 +687,5 @@ def test_email_config_authenticated_post():
 	
 if __name__ == '__main__':
     #app.run(host='4.227.136.155', port=80,debug=False)
-    app.run(host='10.1.0.4', port=80,debug=False)
+    app.run(host='10.1.0.4', port=80,debug=True)
     #app.run(port=80,debug=False)
