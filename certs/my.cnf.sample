@@ -1,0 +1,12 @@
+# Copy this to your my.cnf file. Please change <directory> to the corresponding 
+# directory where the files were copied.
+[client]
+ssl-ca=<directory>/ca-cert.pem
+ssl-cert=<directory>/client-cert.pem
+ssl-key=<directory>/client-key.pem
+
+[mysqld]
+ssl-ca=<directory>/ca-cert.pem
+ssl-cert=<directory>/server-cert.pem
+ssl-key=<directory>/server-key.pem
+        

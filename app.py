@@ -43,7 +43,7 @@ remoteDBaddr = '3.129.155.171'
 remoteDB = 'email-user'
 
 app.config['SECRET_KEY']='d0gp1l3k3y-not-secret-really'
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{admin}:{admPassword}@{remoteDBaddr}:3306/{remoteDB}'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{admin}:{admPassword}@{remoteDBaddr}:3306/{remoteDB}?ssl_ca=/Users/morganreece/Library/CloudStorage/OneDrive-Personal/MSU-PhD/Code Repository/InSURE/certs/us-east-2-bundle.pem&ssl_check_hostname=false'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
@@ -687,5 +687,9 @@ def test_email_config_authenticated_post():
 	
 if __name__ == '__main__':
     #app.run(host='4.227.136.155', port=80,debug=False)
-    app.run(host='10.1.0.4', port=80,debug=True)
+    #app.run(host='10.1.0.4', port=80,debug=False)
+    app.run(host='192.168.1.159', debug=True, 
+            ssl_context=("/Users/morganreece/OneDrive/MSU-PhD/Code Repository/InSURE/certs/server.crt", 
+                         "/Users/morganreece/OneDrive/MSU-PhD/Code Repository/InSURE/certs/server.key"))
+    #app.run(host='192.168.1.159')
     #app.run(port=80,debug=False)
