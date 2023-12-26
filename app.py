@@ -1,4 +1,5 @@
-from flask import Flask, render_template, flash, redirect, url_for, request,send_from_directory
+#!/usr/bin/python3
+from flask import Flask, render_template, flash, redirect, url_for, request, send_from_directory, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
@@ -36,9 +37,13 @@ login.login_message_category = 'danger'
 global_mail_list = []
 global_trash_list = []
 global_search_list = []
+admin = 'admin'
+admPassword = 'dogpile123!'
+remoteDBaddr = '3.129.155.171'
+remoteDB = 'email-user'
 
 app.config['SECRET_KEY']='d0gp1l3k3y-not-secret-really'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dogpile_db.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{admin}:{admPassword}@{remoteDBaddr}:3306/{remoteDB}?ssl_ca=/Users/morganreece/Library/CloudStorage/OneDrive-Personal/MSU-PhD/Code Repository/InSURE/certs/us-east-2-bundle.pem&ssl_check_hostname=false'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
@@ -171,7 +176,7 @@ class MailConfig(UserMixin, db.Model):
 
 @login.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return db.session.get(User, int(id))
 
 def requires_access_level(access_level):
     def decorator(f):
@@ -261,6 +266,7 @@ def settings():
             return redirect(url_for('settings'))
 
     return render_template('user_settings.html', userForm=userForm, configForm=configForm)
+
 def verifySettings():
     user = User.query.get_or_404(current_user.id)
     exist_mail = MailConfig.query.filter_by(uid=current_user.id).first()
@@ -680,4 +686,10 @@ def test_email_config_authenticated_post():
         assert response.status_code == 302
 	
 if __name__ == '__main__':
-    app.run(debug=False)
+    #app.run(host='4.227.136.155', port=80,debug=False)
+    #app.run(host='10.1.0.4', port=80,debug=False)
+    app.run(host='192.168.1.159', debug=True, 
+            ssl_context=("/Users/morganreece/OneDrive/MSU-PhD/Code Repository/InSURE/certs/server.crt", 
+                         "/Users/morganreece/OneDrive/MSU-PhD/Code Repository/InSURE/certs/server.key"))
+    #app.run(host='192.168.1.159')
+    #app.run(port=80,debug=False)
